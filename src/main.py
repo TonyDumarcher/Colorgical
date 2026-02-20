@@ -1,4 +1,4 @@
-import pygame  # python.exe -m pip install pygame-ce
+import pygame  # python -m pip install pygame-ce
 from player import PlayerClass
 from terrain_gen import TerrainGenClass
 from cycle import DayNightCycleClass
@@ -13,7 +13,6 @@ class GameClass:
         self.SCREEN_WIDTH, self.SCREEN_HEIGHT = self.screen.get_size()
         pygame.mouse.set_visible(False)
         
-        self.assets = Assets()
         self.assets.load_cursor()
         self.assets.load_heart()
 
@@ -24,8 +23,6 @@ class GameClass:
         self.running = True
         self.terrain = TerrainGenClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         self.player = PlayerClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
-        self.enemy = EnemyClass(100, 100, self.player, self.terrain)
-        self.inventory = InventoryClass(self)
         self.dayNightCycle = DayNightCycleClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         
 
@@ -60,7 +57,6 @@ class GameClass:
         # UI 
         self.dayNightCycle.draw(self.screen)
         self.player.draw_player_info(self.screen,self.assets.heart,self.terrain)
-        self.inventory.draw_hotbar(self.screen)
         
         self.draw_fps()
         self.draw_mouse()
