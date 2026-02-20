@@ -7,7 +7,7 @@ class TerrainGenClass:
     def __init__(terrain, screen_width, screen_height):
         terrain.SCREEN_WIDTH = screen_width
         terrain.SCREEN_HEIGHT = screen_height
-        terrain.TILE_SIZE = 8
+        terrain.TILE_SIZE = 16
         terrain.PLAYER_SPEED = 10
         terrain.x, terrain.y = 0, 0
         terrain.NoiseMap = OpenSimplex(seed=random.randint(0, 1000000))
@@ -42,7 +42,7 @@ class TerrainGenClass:
 
 
     def draw_terrain(terrain, screen):
-        noiseScale = 0.01
+        noiseScale = 0.03
 
         startScreenX = int(terrain.x // terrain.TILE_SIZE)
         startScreenY = int(terrain.y // terrain.TILE_SIZE)
@@ -57,6 +57,7 @@ class TerrainGenClass:
 
                 if (tileX, tileY) in terrain.SurfaceCache:
                     pygame.draw.rect(screen, terrain.SurfaceCache[(tileX, tileY)], (drawX, drawY, terrain.TILE_SIZE, terrain.TILE_SIZE))
+                    pygame.draw.rect(screen, (50, 50, 50), (drawX, drawY, terrain.TILE_SIZE, terrain.TILE_SIZE), 1)
                     continue
 
 
@@ -65,3 +66,4 @@ class TerrainGenClass:
 
                 pygame.draw.rect(screen, rgb, (drawX, drawY, terrain.TILE_SIZE, terrain.TILE_SIZE))
                 terrain.SurfaceCache[(tileX, tileY)] = rgb
+                pygame.draw.rect(screen, (0, 0, 0), (drawX, drawY, terrain.TILE_SIZE, terrain.TILE_SIZE), 1)

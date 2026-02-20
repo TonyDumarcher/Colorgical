@@ -75,5 +75,3 @@ class PlayerClass:
         pygame.draw.rect(screen,(150,150,150),(60,260,180+ajoutCoordsMouse*25,50))
         coordinatesText = font.render(f"X:{mouseX} Y:{mouseY}",True,(225,225,225))
         screen.blit(coordinatesText,(70,260))
-
-

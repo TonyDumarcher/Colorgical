@@ -23,7 +23,7 @@ class GameClass:
         self.running = True
         self.terrain = TerrainGenClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         #self.player = PlayerClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
-        #self.dayNightCycle = DayNightCycleClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+        self.dayNightCycle = DayNightCycleClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         
 
     def update(self, dividedTime):
@@ -33,6 +33,7 @@ class GameClass:
                 self.running = False
         
         self.terrain.move_player(pressed_keys)
+        self.dayNightCycle.update(dividedTime)
         
 
     def draw(self):
@@ -42,7 +43,7 @@ class GameClass:
         self.terrain.draw_terrain(self.screen)
         
         # UI 
-        
+        self.dayNightCycle.draw(self.screen)
         self.draw_fps()
         #self.draw_mouse()
 
