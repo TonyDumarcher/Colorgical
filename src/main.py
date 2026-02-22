@@ -43,7 +43,7 @@ class GameClass:
                 if event.button == 4 and self.map.TILE_SIZE < 64: # Scroll up
                     self.map.TILE_SIZE += 4
                     self.map.update_font_size()
-                if event.button == 5 and self.map.TILE_SIZE > 12: # Scroll down
+                if event.button == 5 and self.map.TILE_SIZE > 20: # Scroll down
                     self.map.TILE_SIZE -= 4
                     self.map.update_font_size()
 
@@ -75,7 +75,7 @@ class GameClass:
 
     def draw_fps(self):
         fps_val = int(self.clock.get_fps())
-        fps_surface = self.font.render(f"FPS: {fps_val}", True, (255, 255, 0))
+        fps_surface = self.font.render(f"FPS: {fps_val}", True, (255, 255, 255))
         self.screen.blit(fps_surface, (20, 20))
         
     def draw_coords(self):
@@ -85,7 +85,7 @@ class GameClass:
         coordinatesText = self.font.render(f"X:{pygame.mouse.get_pos()[0] if self.coordsMouseMode else x} Y:{pygame.mouse.get_pos()[1] if self.coordsMouseMode else y}",True,(225,225,225), (20, 20, 20))
         self.screen.blit(coordinatesText,(20, 70))
         mode = "Mouse coordinates" if self.coordsMouseMode else "Map coordinates"
-        modeText = self.font.render(mode,True,(225,225,225))
+        modeText = self.font.render(mode,True,(252, 215, 180))
         self.screen.blit(modeText, (20, 110))
 
 

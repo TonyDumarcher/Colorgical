@@ -5,7 +5,7 @@ class MapClass:
     def __init__(map, screen_width, screen_height):
         map.SCREEN_WIDTH = screen_width
         map.SCREEN_HEIGHT = screen_height
-        map.TILE_SIZE = 16
+        map.TILE_SIZE = 20
         map.PLAYER_SPEED = 10
 
         map.coreSize = 5
@@ -30,9 +30,9 @@ class MapClass:
         map.coreTextFont = pygame.font.SysFont("Consolas", fontSize, bold=True)
 
     def compute_ressources_position(map, amountPerColor):
-        map.Colors = [(255, 60, 60), # Red
-                      (60, 255, 60), # Green
-                      (60, 60, 255)] # Blue
+        map.Colors = [(250, 48, 48), # Red
+                      (66, 222, 77), # Green
+                      (51, 89, 224)] # Blue
         
         for color in map.Colors:
             for _ in range(amountPerColor):
@@ -107,7 +107,7 @@ class MapClass:
 
                 if (tileX, tileY) in map.ColorPatches:
                     tileColor = map.ColorPatches[(tileX, tileY)]
-                    outlineColor = (222, 222, 222)
+                    outlineColor = tileColor
                 pygame.draw.rect(screen, tileColor, (drawX, drawY, map.TILE_SIZE, map.TILE_SIZE))
                 pygame.draw.rect(screen, outlineColor, (drawX, drawY, map.TILE_SIZE, map.TILE_SIZE), 1)
 
