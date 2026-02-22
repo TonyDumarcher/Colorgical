@@ -1,5 +1,6 @@
 import pygame  # python -m pip install pygame-ce
 from map import MapClass
+from buildings import BuildingsClass
 
 class GameClass:
     def __init__(self):
@@ -18,13 +19,16 @@ class GameClass:
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("Gardening nightmares")
         self.running = True
+        self.coordsMouseMode = False
         self.map = MapClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+        self.buildings = BuildingsClass()
         
 
     def update(self, dividedTime):
         pressed_keys = pygame.key.get_pressed()
         mousePosition = pygame.mouse.get_pos()
         for event in pygame.event.get():
+            self.buildings.handle_event(event)
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 self.running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -54,20 +58,20 @@ class GameClass:
                     self.map.x -= mouseDifferenceX
                     self.map.y -= mouseDifferenceY
                     self.map.mousePositionOnLastFrame = mousePosition
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_m:
+                    self.coordsMouseMode =  not self.coordsMouseMode
 
         self.map.move_player(pressed_keys)
-        #self.dayNightCycle.update(dividedTime)
-        
 
     def draw(self):
         self.screen.fill((0, 0, 0))
-        
-        # Entities
         self.map.draw_map(self.screen)
         
         # UI 
         self.draw_fps()
         self.draw_coords()
+        self.buildings.draw_building_bar(self.screen)
 
     def draw_fps(self):
         fps_val = int(self.clock.get_fps())
@@ -78,8 +82,11 @@ class GameClass:
         # Draw coordinates
         x = self.map.x // self.map.TILE_SIZE
         y =self.map.y // self.map.TILE_SIZE
-        coordinatesText = self.font.render(f"X:{x} Y:{y}",True,(225,225,225), (20, 20, 20))
+        coordinatesText = self.font.render(f"X:{pygame.mouse.get_pos()[0] if self.coordsMouseMode else x} Y:{pygame.mouse.get_pos()[1] if self.coordsMouseMode else y}",True,(225,225,225), (20, 20, 20))
         self.screen.blit(coordinatesText,(20, 70))
+        mode = "Mouse coordinates" if self.coordsMouseMode else "Map coordinates"
+        modeText = self.font.render(mode,True,(225,225,225))
+        self.screen.blit(modeText, (20, 110))
 
 
 game = GameClass()
