@@ -15,7 +15,7 @@ class MapClass:
         map.update_font_size()
         
         map.ColorPatches = {}
-        map.colorSpacing = 100
+        map.colorSpacing = 50
         map.compute_ressources_position(5)
 
         map.ModifiedTiles = {}
@@ -86,7 +86,8 @@ class MapClass:
                               corePixelSize - (padding * 2), corePixelSize - (padding * 2)))
             levelText = map.coreTextFont.render("Level 1", True, (10, 10, 10))
 
-            textRect = levelText.get_rect(center=(coreDrawX + corePixelSize // 2, coreDrawY + corePixelSize // 2))
+            textRect = levelText.get_rect(center=(coreDrawX + corePixelSize // 2,
+                                                  coreDrawY + corePixelSize // 2 +  1.75 * map.TILE_SIZE))
             
             screen.blit(levelText, textRect)
 
