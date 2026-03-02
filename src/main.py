@@ -1,7 +1,6 @@
 import pygame  # python -m pip install pygame-ce
 from map import MapClass
 from buildings import BuildingsClass
-from miner import MinerClass
 
 class GameClass:
     def __init__(self):

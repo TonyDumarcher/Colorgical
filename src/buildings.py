@@ -78,3 +78,5 @@ class BuildingsClass:
                 pipeImg = pygame.transform.scale(objects[item],(self.SLOT_SIZE * 0.6,self.SLOT_SIZE * 0.6))
                 screen.blit(pipeImg,(x + self.SLOT_SIZE*0.2,y + self.SLOT_SIZE*0.1))
 
+
+# Yooo we should make miner.py and pipe.py children of buildingclass
