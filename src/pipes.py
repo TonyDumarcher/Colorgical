@@ -1,51 +1,85 @@
 import pygame
 
 class PipeClass:
-    def __init__(self, x, y, direction, Sprites):
-        self.x = x
-        self.y = y
-        self.direction = direction
-        self.Sprites = Sprites
-        self.startDirection = None
-        self.endDirection = direction
-        self.image = None
-        self.pick_asset({})
+    def __init__(pipe, x, y, direction, Sprites):
+        pipe.x = x
+        pipe.y = y
+        pipe.direction = direction
+        pipe.Sprites = Sprites
+        pipe.image = None
+        pipe.Crossings = [7, 11, 13, 14, 15]
+        pipe.binary = {"Right": 1, "Down": 2, "Left": 4, "Up": 8}
+        
+        pipe.pick_asset({})
 
-    def get_connections(self, allPipes):
+    def get_connections(pipe, allPipes):
         connections = []
         check = {
-            "Up": (self.x, self.y - 1),
-            "Down": (self.x, self.y + 1),
-            "Left": (self.x - 1, self.y),
-            "Right": (self.x + 1, self.y)
+            "Up": (pipe.x, pipe.y - 1),
+            "Down": (pipe.x, pipe.y + 1),
+            "Left": (pipe.x - 1, pipe.y),
+            "Right": (pipe.x + 1, pipe.y)
         }
-        
         for direction, coords in check.items():
             if coords in allPipes:
                 connections.append(direction)
         return connections
+
+    def calc_overlay_asset(pipe, allPipes):
+        connections = pipe.get_connections(allPipes)
         
-    def pick_asset(self, allPipes):
-        connections = self.get_connections(allPipes)
+        if not connections:
+            tileID = pipe.binary.get(pipe.direction, 1)
+        else:
+            neighbour = connections[0]
+            
+            assetID = pipe.binary[neighbour] + pipe.binary[pipe.direction]
+            
+            assets = {
+                5: 5,
+                10: 10,
+                9:  22 if neighbour == "Right" else 27,
+                12: 23 if neighbour == "Up" else 28,
+                6:  24 if neighbour == "Left" else 29,
+                3:  25 if neighbour == "Down" else 26
+            }
+            tileID = assets.get(assetID, pipe.binary[pipe.direction])
+
+        pipe.image = pipe.Sprites.get(tileID, pipe.Sprites.get(1))
+
+    def pick_asset(pipe, allPipes):
+        connections = pipe.get_connections(allPipes)
+        tileID = sum(pipe.binary[d] for d in connections)
         
-        binary = {"Right": 1, "Down": 2, "Left": 4, "Up": 8}
-        tileID = sum(binary[d] for d in connections) - 1
         if tileID == 0:
-            tileID = binary.get(self.direction, 1)
+            tileID = pipe.binary.get(pipe.direction, 1)
 
-        self.image = self.Sprites.get(tileID, self.Sprites.get(1))
+        if tileID in pipe.Crossings:
+            return 
+        else:
+            pipe.image = pipe.Sprites.get(tileID, pipe.Sprites.get(1))
 
-    def draw_pipe(self, screen, camX, camY, TILE_SIZE):
-        drawX = self.x * TILE_SIZE - camX
-        drawY = self.y * TILE_SIZE - camY
-        sizeChange = TILE_SIZE - 40
-        imageSize = self.image.get_rect()[2:4]
-        image = pygame.transform.scale(self.image,(imageSize[0] + sizeChange, imageSize[1] + sizeChange))
-        screen.blit(image, (drawX, drawY))
+    def draw_pipe(pipe, screen, camX, camY, TILE_SIZE, allPipes=None, overlay=False):
+        drawX = pipe.x * TILE_SIZE - camX
+        drawY = pipe.y * TILE_SIZE - camY
 
-
-
-
+        if overlay:
+            pipe.calc_overlay_asset(allPipes if allPipes is not None else {})
+            
+            if pipe.image:
+                pipe.image.set_alpha(120)
+                mousePosition = pygame.mouse.get_pos()
+                mouseX = mousePosition[0] - TILE_SIZE // 2
+                mouseY = mousePosition[1] - TILE_SIZE // 2
+                screen.blit(pipe.image, (mouseX, mouseY))
+        else:
+            if pipe.image:
+                pipe.image.set_alpha(255)
+                screen.blit(pipe.image, (drawX, drawY))
+            else:
+                pipe.pick_asset(allPipes if allPipes is not None else {})
+                if pipe.image:
+                    screen.blit(pipe.image, (drawX, drawY))
 
 
 

@@ -1,7 +1,6 @@
 import pygame  # python -m pip install pygame-ce
 from map import MapClass
 from buildings import BuildingsClass
-from miner import MinerClass
 
 class GameClass:
     def __init__(self):
@@ -21,6 +20,7 @@ class GameClass:
         self.map = MapClass(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
         self.buildings = BuildingsClass()
         self.isDeleting = False
+        
 
 
     def update(self):
@@ -46,9 +46,11 @@ class GameClass:
                 if event.button == 4 and self.map.TILE_SIZE < 64: # Scroll up
                     self.map.TILE_SIZE += 4
                     self.map.update_font_size()
+                    self.map.zoom_assets()
                 if event.button == 5 and self.map.TILE_SIZE > 20: # Scroll down
                     self.map.TILE_SIZE -= 4
                     self.map.update_font_size()
+                    self.map.zoom_assets()
 
             self.buildings.handle_event(event, mousePosition, self.screen, self.map)
 
@@ -81,10 +83,12 @@ class GameClass:
 
         if self.isDeleting:
             self.map.remove_building()
+
         for building in self.map.SurfaceCache.values():
-            if type(building) is MinerClass:
-                building.update_mine()
+            pass
         self.map.move_player(pressed_keys)
+
+
 
     def draw(self):
         startScreenX = self.map.x // self.map.TILE_SIZE
@@ -99,10 +103,8 @@ class GameClass:
                 pipe.draw_pipe(self.screen, self.map.x, self.map.y, self.map.TILE_SIZE)
 
         for building in self.map.SurfaceCache.values():
-            if type(building) is MinerClass:
-                building.draw_outputs(self.screen,self.map)
-
-        # UI
+            pass
+        # UI 
         self.draw_fps()
         self.draw_coords()
         self.buildings.draw_building_bar(self.screen,self.map.everyBuilding)

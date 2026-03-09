@@ -45,19 +45,39 @@ class MapClass:
         map.arrowSprite = pygame.image.load(arrowPath).convert_alpha()
 
         # Pipes
+
+        map.OriginalPipeSprites = {}
         map.PipeSprites = {}
-        for i in range(0, 29):
+        for i in range(30):
             p_path = os.path.join(map.assets_path, "pipes", f"pipe{i}.png")
             if os.path.exists(p_path):
-                img = pygame.image.load(p_path).convert_alpha()
-                map.PipeSprites[i] = pygame.transform.scale(img, (map.TILE_SIZE, map.TILE_SIZE))
+                originalImg = pygame.image.load(p_path).convert_alpha()
+                map.OriginalPipeSprites[i] = originalImg
 
+        map.Miners = {}
+        map.MinerSprites = {}
+        for i in range(16):
+            m_path = os.path.join(map.assets_path, "miners", f"miner{i}.png")
+            if os.path.exists(m_path):
+                originalImg = pygame.image.load(m_path).convert_alpha()
+                map.MinerSprites[i] = originalImg
+
+        map.zoom_assets()
         map.update_font_size()
         map.compute_ressources_position(5)
+
+
+#====================================================================================================#
+
+
 
     def update_font_size(map):
         fontSize = int(map.TILE_SIZE * 0.8)
         map.coreTextFont = pygame.font.SysFont("Consolas", fontSize, bold=True)
+
+
+#====================================================================================================#
+
 
     def compute_ressources_position(map, amountPerColor):
         map.Colors = [(250, 48, 48), # Red
@@ -77,6 +97,29 @@ class MapClass:
                         if random.random() > 0.1:
                             map.ColorPatches[(spawnX + x, spawnY + y)] = color
 
+
+#====================================================================================================#
+
+
+    def zoom_assets(map):
+        for i, originalImg in map.OriginalPipeSprites.items():
+            map.PipeSprites[i] = pygame.transform.scale(originalImg, (map.TILE_SIZE, map.TILE_SIZE))
+        
+        for pipe in map.Pipes.values():
+            pipe.Sprites = map.PipeSprites
+            pipe.pick_asset(map.Pipes)
+
+        for i, originalImg in map.MinerSprites.items():
+            map.MinerSprites[i] = pygame.transform.scale(originalImg, (map.TILE_SIZE, map.TILE_SIZE))
+            
+        for miner in map.Miners.values():
+            miner.Sprites = map.MinerSprites
+            miner.pick_asset(map.Miners)
+
+
+#====================================================================================================#
+
+
     def remove_building(map):
         mousePosition = pygame.mouse.get_pos()
         mouseTileX = (map.x + mousePosition[0]) // map.TILE_SIZE
@@ -91,6 +134,10 @@ class MapClass:
                     map.Pipes[coordinates].pick_asset(map.Pipes)
         elif mouseTile in map.SurfaceCache:
             del map.SurfaceCache[mouseTile]
+
+
+#====================================================================================================#
+
 
     def move_player(map, keys):
         nerf = 1
@@ -110,6 +157,9 @@ class MapClass:
                 map.y += map.PLAYER_SPEED * nerf * (2 if keys[pygame.K_LSHIFT] else 1)
                 
             map.x, map.y = round(map.x), round(map.y)
+
+
+#====================================================================================================#
 
 
     def draw_core(map, screen):
@@ -132,11 +182,38 @@ class MapClass:
             screen.blit(levelText, textRect)
 
 
+#====================================================================================================#
+
+
+    def draw_overlay(map, mousePosition, mouseTileX, mouseTileY, isInCore, screen, selectedBuilding):
+        overlayX = mouseTileX * map.TILE_SIZE - map.x
+        overlayY = mouseTileY * map.TILE_SIZE - map.y
+
+        overlaySurf = pygame.Surface((map.TILE_SIZE, map.TILE_SIZE), pygame.SRCALPHA)
+        overlayColor = (255, 50, 50, 120) if isInCore else (50, 255, 50, 120)
+        
+        pygame.draw.rect(overlaySurf, overlayColor, (0, 0, map.TILE_SIZE, map.TILE_SIZE), 2)
+        screen.blit(overlaySurf, (overlayX, overlayY))
+        if selectedBuilding == "Pipe":
+            pipe = PipeClass(mouseTileX, mouseTileY, map.direction, map.PipeSprites)
+            pipe.draw_pipe(screen, map.x, map.y, map.TILE_SIZE, map.Pipes, overlay=True)
+
+        elif selectedBuilding == "Miner":
+            miner = MinerClass(mouseTileX, mouseTileY, map.direction, map.MinerSprites)
+            miner.draw_miner(screen, map.x, map.y, map.TILE_SIZE, map.Miners, overlay=True)
+
+
+#====================================================================================================#
+
+
     def draw_arrow(map, screen, drawX, drawY, direction):
-        directions = {"Right":0, "Up":1, "Left":2, "Down":3}
+        directions = {"Up":0, "Left":1, "Down":2, "Right":3}
         arrow = pygame.transform.scale(map.arrowSprite, (map.TILE_SIZE, map.TILE_SIZE))
         arrow = pygame.transform.rotate(arrow, 90*directions[direction])
         screen.blit(arrow, (drawX, drawY, map.TILE_SIZE, map.TILE_SIZE))
+
+
+#====================================================================================================#
 
 
     def draw_map(map, screen, selectedSlot, hotbar, interactionMode):
@@ -169,10 +246,9 @@ class MapClass:
                     buildingType = map.SurfaceCache[(tileX, tileY)]
 
                     if type(buildingType) is MinerClass:
-                        centerX = drawX + map.TILE_SIZE // 2
-                        centerY = drawY + map.TILE_SIZE // 2
-                        pygame.draw.circle(screen, (255, 127, 0), (centerX, centerY), map.TILE_SIZE // 3)
-        
+                        buildingType.draw_miner(screen, map.x, map.y, map.TILE_SIZE, map.Miners)
+
+        map.draw_core(screen)
 
         isInCore = map.coreX <= mouseTileX < (map.coreX + map.coreSize) and \
                    map.coreY <= mouseTileY < (map.coreY + map.coreSize)
@@ -181,34 +257,33 @@ class MapClass:
             item = hotbar[selectedSlot]
             
             if item == "Miner":
-                if (mouseTileX, mouseTileY) in map.ColorPatches:
-                    map.SurfaceCache[(mouseTileX, mouseTileY)] = MinerClass(mouseTileX, mouseTileY, map.ColorPatches)
+                if (mouseTileX, mouseTileY) in map.ColorPatches and (mouseTileX, mouseTileY) not in map.SurfaceCache:
+                    newMiner = MinerClass(mouseTileX, mouseTileY, map.direction, map.MinerSprites)
+                    map.SurfaceCache[(mouseTileX, mouseTileY)] = newMiner
+
+                    for neighbourX in range(-1, 2):
+                        for neighbourY in range(-1, 2):
+                            target = (mouseTileX + neighbourX, mouseTileY + neighbourY)
+                            if target in map.Miners:
+                                map.Miners[target].pick_asset(map.Miners)
 
             elif item == "Pipe":
                 if (mouseTileX, mouseTileY) not in map.Pipes:
-                    map.Pipes[(mouseTileX, mouseTileY)] = PipeClass(mouseTileX, mouseTileY, map.direction, map.PipeSprites)
+                    newPipe = PipeClass(mouseTileX, mouseTileY, map.direction, map.PipeSprites)
+                    map.Pipes[(mouseTileX, mouseTileY)] = newPipe
 
-                    for neighbourX, neighbourY in [(0,0), (0,-1), (0,1), (-1,0), (1,0)]:
-                        target = (mouseTileX + neighbourX, mouseTileY + neighbourY)
-                        if target in map.Pipes:
-                            map.Pipes[target].pick_asset(map.Pipes)
-            else:
-                map.SurfaceCache[(mouseTileX, mouseTileY)] = item
+                    for neighbourX in range(-1, 2):
+                        for neighbourY in range(-1, 2):
+                            target = (mouseTileX + neighbourX, mouseTileY + neighbourY)
+                            if target in map.Pipes:
+                                map.Pipes[target].pick_asset(map.Pipes)
 
 
         if interactionMode == "Building" and selectedSlot is not None:
-            overlayX = mouseTileX * map.TILE_SIZE - map.x
-            overlayY = mouseTileY * map.TILE_SIZE - map.y
+            map.draw_overlay(mousePosition, mouseTileX, mouseTileY, isInCore, screen, hotbar[selectedSlot])
 
-            overlaySurf = pygame.Surface((map.TILE_SIZE, map.TILE_SIZE), pygame.SRCALPHA)
-            overlayColor = (255, 50, 50, 120) if isInCore else (255, 255, 255, 120)
-            
-            overlaySurf.fill(overlayColor)
-            screen.blit(overlaySurf, (overlayX, overlayY))
 
-            map.draw_arrow(screen, overlayX, overlayY, map.direction)
-
-        map.draw_core(screen)
+        
 
 
 
